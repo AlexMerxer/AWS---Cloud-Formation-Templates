@@ -1,0 +1,485 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Architecture for my exercise",
+    
+    "Parameters": {
+        "VPCRange": {
+            "Description": "VPC Range for VPC",
+            "Type": "String",
+            "Default": "10.0.1.0/16"
+        },
+        
+        "SubnetRanges": {
+            "Description": "-",
+            "Type": "CommaDelimitedList",
+            "Default": "10.0.1.0/24,10.0.2.0/24,10.0.3.0/24,10.0.4.0/24"
+        },
+        "appSubnet1AZs": {
+            "Description": "Availability Zone for Web Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "appSubnet2AZs": {
+            "Description": "Availability Zone for App Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "dbSubnet1AZs": {
+            "Description": "Availability Zone for Db1 Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "dbbSubnet2AZs": {
+            "Description": "Availability Zone for Db2 Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "appami": {
+            "Description": "ID for app EC2 and amiID-ami-0f8e81a3da6e2510a",
+            "Type":  "AWS::EC2::Image::Id"
+        },
+        "appinstancetype": {
+            "Description": "Type  of  instance",
+            "Type": "String",
+            "Default": "t2.micro"
+        },
+        "appkey": {
+            "Description": "Key Pair for app instacne",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        }
+    },
+    
+    "Resources": {
+        "Myvpcwrk": {
+            "Description": "VPC for Workshop",
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "VPCRange"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "WorkArchVPC"
+                    }
+                ]
+            }
+        },
+        "appsubnet1": {
+            "Description": "Subnet for my app1",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "appSubnet1AZs"
+                },
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        0,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "app_sb1"
+                    }
+                ]
+            }
+        },
+        "appsubnet2": {
+            "Description": "Subnet for my app2",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "appSubnet2AZs"
+                },
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        1,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "App_sb2"
+                    }
+                ]
+            }
+        },
+        "dbsubnet1": {
+            "Description": "Subnet for my db",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "dbSubnet1AZs"
+                },
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        2,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "db_sb1"
+                    }
+                ]
+            }
+        },
+        "dbsubnet2": {
+            "Description": "Subnet for my web",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "dbbSubnet2AZs"
+                },
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        3,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "db_sb2"
+                    }
+                ]
+            }
+        },
+        "MywrkIgw": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "workshopIgw"
+                    }
+                ]
+            }
+        },
+        "publicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "My_Public"
+                    }
+                ]
+            }
+        },
+        "privateRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "My_private"
+                    }
+                ]
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "InternetGatewayId": {
+                    "Ref": "MywrkIgw"
+                }
+            }
+        },
+        "App1toPublic": {
+            "Description": "Associating app1 Subnet to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "appsubnet1"
+                }
+            }
+        },
+        "App2ToPublic": {
+            "Description": "Associating app2 Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "appsubnet2"
+                }
+            }
+        },
+        "db1ToPrivate": {
+            "Description": "Associating db1 Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "dbsubnet1"
+                }
+            }
+        },
+        "db2ToPrivate": {
+            "Description": "Associating db2 Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "dbsubnet2"
+                }
+            }
+        },
+        "appsg1public": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This a security Group for web server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "appPublic_sg"
+                    }
+                ]
+            }
+        },
+        "appsb2sg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This a security Group for App server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "CidrIp": {
+                            "Ref": "VPCRange"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "wrkshpapp2_sg"
+                    }
+                ]
+            }
+        },
+        "Dbsg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This a security Group for Database server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3306,
+                        "ToPort": 3306,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Myvpcwrk"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "wrkshpdb_sg"
+                    }
+                ]
+            }
+        },
+        "appsb1Ec2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "appami"
+                },
+                "InstanceType": {
+                    "Ref": "appinstancetype"
+                },
+                "KeyName": {
+                    "Ref": "appkey"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "SubnetId": {
+                            "Ref": "appsubnet1"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "appsg1public"
+                            }
+                        ],
+                        "DeviceIndex": 0
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "wrkAppsb1Ec2"
+                    }
+                ]
+            }
+        },
+        "appsb2Ec2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "appami"
+                },
+                "InstanceType": {
+                    "Ref": "appinstancetype"
+                },
+                "KeyName": {
+                    "Ref": "appkey"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "SubnetId": {
+                            "Ref": "appsubnet2"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "appsg1public"
+                            }
+                        ],
+                        "DeviceIndex": 0
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "wrkAppsb2Ec2"
+                    }
+                ]
+            }
+        },
+        "MyrdsDBSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "These are the subnet groups for RDS",
+                "SubnetIds": [
+                    {
+                        "Ref": "dbsubnet1"
+                    },
+                    {
+                        "Ref": "dbsubnet2"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "MyRdsSbGroup"
+                    }
+                ]
+            }
+        },
+        "rdsDBInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "AllocatedStorage": "20",
+                "DBInstanceClass": "db.t2.micro",
+                "AllowMajorVersionUpgrade": false,
+                "AutoMinorVersionUpgrade": false,
+                "BackupRetentionPeriod": 0,
+                "DBInstanceIdentifier": "prtdbqt",
+                "DBName": "employee",
+                "VPCSecurityGroups": [
+                    {
+                        "Ref": "Dbsg"
+                    }
+                ],
+                "DBSnapshotIdentifier": "",
+                "DBSubnetGroupName": {
+                    "Ref": "MyrdsDBSubnetGroup"
+                },
+                "Engine": "mysql",
+                "EngineVersion": "8.0",
+                "MasterUsername": "admin",
+                "MasterUserPassword": "adminadmin",
+                "MultiAZ": false,
+                "PubliclyAccessible": false,
+                "StorageType": "gp2",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Mywrkshpdb"
+                    }
+                ]
+            }
+        }
+        
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

@@ -1,0 +1,443 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Architecture for my exercise",
+    "Parameters": {
+        "VPCRange": {
+            "Description": "VPC Range for VPC",
+            "Type": "String",
+            "Default": "10.0.1.0/16"
+        },
+        "SubnetRanges": {
+            "Description": "-",
+            "Type": "CommaDelimitedList",
+            "Default": "10.0.1.0/24,10.0.2.0/24,10.0.3.0/24,10.0.4.0/24"
+        },
+        "webSubnetAZs": {
+            "Description": "Availability Zone for Web Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "appSubnetAZs": {
+            "Description": "Availability Zone for App Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "db1SubnetAZs": {
+            "Description": "Availability Zone for Db1 Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        "db2bSubnetAZs": {
+            "Description": "Availability Zone for Db2 Subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+        },
+        
+        "webami": {
+            "Description": "ID for web EC2 and ami-04a5a6be1fa530f1c",
+            "Type":  "AWS::EC2::Image::Id"
+        },
+        "webinstancetype": {
+            "Description": "Type  of  instance",
+            "Type": "String",
+            "Default": "t3.micro"
+        },
+        "webkey": {
+            "Description": "Key Pair for web instacne",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "appami": {
+            "Description": "ID for app EC2 and ami-04a5a6be1fa530f1c",
+            "Type":  "AWS::EC2::Image::Id"
+        },
+        "appinstancetype": {
+            "Description": "Type  of  instance",
+            "Type": "String",
+            "Default": "t3.micro"
+        },
+        "appkey": {
+            "Description": "Key Pair for app instacne",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        }
+        
+    },
+    "Resources": {
+        "MyVPC": {
+            "Description": "VPC for exercise",
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "VPCRange"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "ExecArchVPC"
+                    }
+                ]
+            }
+        },
+        "websubnet": {
+            "Description": "Subnet for my web",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "webSubnetAZs"
+                },
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        0,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Web_sb"
+                    }
+                ]
+            }
+        },
+        "appsubnet": {
+            "Description": "Subnet for my app",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "appSubnetAZs"
+                },
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        1,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "App_sb"
+                    }
+                ]
+            }
+        },
+        "db1subnet": {
+            "Description": "Subnet for my db",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "db1SubnetAZs"
+                },
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        2,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "db1_sb"
+                    }
+                ]
+            }
+        },
+        "db2subnet": {
+            "Description": "Subnet for my web",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Ref": "db2bSubnetAZs"
+                },
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "CidrBlock": {
+                    "Fn::Select": [
+                        3,
+                        {
+                            "Ref": "SubnetRanges"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "db2_sb"
+                    }
+                ]
+            }
+        },
+        "MyexerIgw": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "ExerIgw"
+                    }
+                ]
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "InternetGatewayId": {
+                    "Ref": "MyexerIgw"
+                }
+            }
+            
+        },
+        "publicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "My_Public"
+                    }
+                ]
+            }
+        },
+        "privateRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "My_private"
+                    }
+                ]
+            }
+        },
+        "MyexerIgwRoute": {
+            "Description": "Internet gateway route",
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "MyexerIgw"
+                }
+            }
+        },
+        "WebToPublic": {
+            "Description": "Associating web Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "websubnet"
+                }
+            }
+        },
+        "AppToPrivate": {
+            "Description": "Associating web Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "appsubnet"
+                }
+            }
+        },
+        "db1ToPrivate": {
+            "Description": "Associating web Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "db1subnet"
+                }
+            }
+        },
+        "db2ToPrivate": {
+            "Description": "Associating web Subnwt to publicRoute",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "db2subnet"
+                }
+            }
+        },
+        "websg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This a security Group for web server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Exerweb_sg"
+                    }
+                ]
+            }
+        },
+        "Appsg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This a security Group for App server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "CidrIp": {
+                            "Ref": "VPCRange"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Exerapp_sg"
+                    }
+                ]
+            }
+        },
+        "Dbsg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This a security Group for Database server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3306,
+                        "ToPort": 3306,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "MyVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Exerdb_sg"
+                    }
+                ]
+            }
+        },
+        "webEc2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "webami"
+                },
+                "InstanceType": {
+                    "Ref": "webinstancetype"
+                },
+                "KeyName": {
+                    "Ref": "webkey"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "SubnetId": {
+                            "Ref": "websubnet"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "websg"
+                            }
+                        ],
+                        "DeviceIndex": 0
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "ExerWebEc2"
+                    }
+                ]
+            }
+        },
+        "appEc2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "appami"
+                },
+                "InstanceType": {
+                    "Ref": "appinstancetype"
+                },
+                "KeyName": {
+                    "Ref": "appkey"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "SubnetId": {
+                            "Ref": "appsubnet"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "Appsg"
+                            }
+                        ],
+                        "DeviceIndex": 0
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "exerAppEc2"
+                    }
+                ]
+            }
+        }
+    }
+}

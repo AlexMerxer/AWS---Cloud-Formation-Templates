@@ -1,0 +1,14 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Resources" : {
+    "myStackWithParams" : {
+      "Type" : "AWS::CloudFormation::Stack",
+      "Properties" : {
+        "TemplateURL" : "https://github.com/AlexMerxer/AWS_CloudFormation/blob/main/SecuirityGroup.JSON",
+        "Parameters" : {
+          "ntierVpcID" : "vpc-0a5a051399e76e0d2"
+        }
+      }
+    }
+  }
+}
