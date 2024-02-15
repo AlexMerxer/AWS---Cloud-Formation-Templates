@@ -7,6 +7,11 @@
             "Description": "Thing Type Name",
             "Type": "String",
             "Default": "cctvcamera_1"
+        },
+        "IAMPolicyName": {
+            "Description": "Name of the policy",
+            "Type": "String",
+            "Default": "IOT policy"
         }
     },
     "Resources": {
@@ -47,22 +52,28 @@
         },
         "KVSPolicy": {
             "Type": "AWS::IAM::RolePolicy",
-            "PolicyName": "IOTPolicy",
-            "PolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Action": [
-                            "kinesisvideo:Describestream",
-                            "kinesisvideo:PutMedia",
-                            "kinesisvideo:TagStream",
-                            "kinesisvideo:GetDataEndpoint"
-                        ],
-                        "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
-                    }
-                ]
+            "Properties":{
+                "PolicyName": {
+                    "Ref": "IAMPolicyName"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "kinesisvideo:Describestream",
+                                "kinesisvideo:PutMedia",
+                                "kinesisvideo:TagStream",
+                                "kinesisvideo:GetDataEndpoint"
+                            ],
+                            "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
+                        }
+                    ]
+                }
+
             }
+            
         }
     }
 }
