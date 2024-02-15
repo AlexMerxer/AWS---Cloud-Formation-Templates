@@ -2,7 +2,7 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "This template creates a IOT service and certificates for the Camera",
     "Resources": {
-        "camera_1": {
+        "CamerIOT": {
             "Type": "AWS::IoT::ThingType",
             "Properties": {
                 "DeprecateThingType": false,
