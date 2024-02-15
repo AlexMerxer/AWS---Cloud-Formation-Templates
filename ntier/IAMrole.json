@@ -1,0 +1,53 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates IAM Role and its policies",
+    "Parameters": {
+        "IAMPolicyName": {
+            "Description": "Name of the policy",
+            "Type": "String",
+            "Default": "IOT policy"
+        }
+    },
+    "Resources": {
+        "RootRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicy": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "credentials.iot.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": {
+                            "Ref": "IAMPolicyName"
+                        },
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "kinesisvideo:Describestream",
+                                        "kinesisvideo:PutMedia",
+                                        "kinesisvideo:TagStream",
+                                        "kinesisvideo:GetDataEndpoint"
+                                    ],
+                                    "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
