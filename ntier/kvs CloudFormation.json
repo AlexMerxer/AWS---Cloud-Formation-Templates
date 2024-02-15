@@ -12,7 +12,7 @@
                 },
                 "Tags": [
                     {
-                        "key": "IOT_Type",
+                        "key": "Name",
                         "Value": "CCTVCAMERA_1"
                     }
                 ]
