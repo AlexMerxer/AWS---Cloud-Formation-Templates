@@ -2,17 +2,17 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "This template creates IAM Role and its policies",
     "Parameters": {
-        "IAMPolicyName": {
+        "PolicyName": {
             "Description": "Name of the policy",
             "Type": "String",
-            "Default": "IOT policy"
+            "Default": "KvsPolicy"
         }
     },
     "Resources": {
-        "RootRole": {
+        "MyIAMRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-                "AssumeRolePolicy": {
+                "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
                     "Statement": [
                         {
@@ -24,27 +24,34 @@
                         }
                     ]
                 },
-                "Path": "/",
-                "Policies": [
-                    {
-                        "PolicyName": {
-                            "Ref": "IAMPolicyName"
-                        },
-                        "PolicyDocument": {
-                            "Version": "2012-10-17",
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "kinesisvideo:Describestream",
-                                        "kinesisvideo:PutMedia",
-                                        "kinesisvideo:TagStream",
-                                        "kinesisvideo:GetDataEndpoint"
-                                    ],
-                                    "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
-                                }
-                            ]
+                "RoleName": "IoTRole",
+                "Description": "Name for the IOT role"
+            }
+        },
+        "MyIAMPolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": {
+                    "Ref": "PolicyName"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "kinesisvideo:Describestream",
+                                "kinesisvideo:PutMedia",
+                                "kinesisvideo:TagStream",
+                                "kinesisvideo:GetDataEndpoint"
+                            ],
+                            "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
                         }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "MyIAMRole"
                     }
                 ]
             }
