@@ -1,7 +1,8 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates a IOT service and certificates for the Camera",
-    "Parameters":{
+    "Description": "This template creates a IOT service and certificates for the Camera And",
+    "Description2": "This Creates IAM role and policy which are neccessary",
+    "Parameters": {
         "ThingTypeName": {
             "Description": "Thing Type Name",
             "Type": "String",
@@ -25,6 +26,42 @@
             "Type": "AWS::IoT::Thing",
             "Properties": {
                 "ThingName": "IOTcamera1"
+            }
+        },
+        "RootRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "KVS role": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "credentials.iot.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                }
+            }
+        },
+        "KVSPolicy": {
+            "Type": "AWS::IAM::RolePolicy",
+            "PolicyName": "IOTPolicy",
+            "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": [
+                            "kinesisvideo:Describestream",
+                            "kinesisvideo:PutMedia",
+                            "kinesisvideo:TagStream",
+                            "kinesisvideo:GetDataEndpoint"
+                        ],
+                        "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
+                    }
+                ]
             }
         }
     }
