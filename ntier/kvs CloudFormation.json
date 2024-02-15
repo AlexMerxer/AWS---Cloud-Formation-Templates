@@ -1,0 +1,22 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a IOT service and certificates for the Camera",
+    "Resources": {
+        "camera_1": {
+            "Type": "AWS::IoT::ThingType",
+            "Properties": {
+                "DeprecateThingType": false,
+                "ThingTypeName": "cctvcamera_1",
+                "ThingTypeProperties": {
+                    "ThingTypeDescription": "camera_1 ThingType"
+                },
+                "Tags": [
+                    {
+                        "key": "IOT_Type",
+                        "Value": "CCTVCAMERA_1"
+                    }
+                ]
+            }
+        }
+    }
+}
