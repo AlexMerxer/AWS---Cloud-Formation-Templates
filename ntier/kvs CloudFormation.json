@@ -7,6 +7,11 @@
             "Type": "String",
             "Default": "cctvcamera_1"
         },
+        "IotThingName": {
+            "Description": "IOT Thing Name",
+            "Type": "String",
+            "Default": "IOTcamera1"
+        },
         "PolicyName": {
             "Description": "Name of the policy",
             "Type": "String",
@@ -26,6 +31,11 @@
             "Description": "Resoure ARN for IOT policy(It Differs from policy to policy that we create)",
             "Type": "String",
             "Default": "arn:aws:iot:us-east-1:361691268968:rolealias/MyKVSRoleAlias"
+        },
+        "DataRetentionInHours": {
+            "Description": "Select the No of hours for data retention",
+            "Type": "CommaDelimitedList",
+            "Default": "1,24,8760"
         }
     },
     "Resources": {
@@ -44,9 +54,8 @@
         "CCTVCamera": {
             "Type": "AWS::IoT::Thing",
             "Properties": {
-                "ThingName": "IOTcamera1",
-                "ThingTypeName": {
-                    "Ref": "CameraIOT"
+                "ThingName": {
+                    "Ref": "IotThingName"
                 }
             }
         },
@@ -132,6 +141,30 @@
                         }
                     ]
                 }
+            }
+        },
+        "MyKinesisVideoStream": {
+            "Type": "AWS::KinesisVideo::Stream",
+            "Properties": {
+                "Name": {
+                    "Ref": "IotThingName"
+                },
+                "DataRetentionInHours": {
+                    "Fn::Select": [
+                        1,
+                        {
+                            "Ref": "DataRetentionInHours"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "Region": {
+            "Description": "Gives the Region where the resources are created",
+            "Value": {
+                "Ref": "AWS::Region"
             }
         }
     }

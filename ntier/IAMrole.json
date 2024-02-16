@@ -1,60 +1,12 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates IAM Role and its policies",
-    "Parameters": {
-        "PolicyName": {
-            "Description": "Name of the policy",
+    "Description": "This template creates IOT RoleAlias and its IOT policies",
+    "parameters":{
+        "IOTPolicyName": {
+            "Description": "Name for the IOT policy",
             "Type": "String",
-            "Default": "KvsPolicy"
-        }
-    },
-    "Resources": {
-        "MyIAMRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "credentials.iot.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        }
-                    ]
-                },
-                "RoleName": "IoTRole",
-                "Description": "Name for the IOT role"
-            }
-        },
-        "MyIAMPolicy": {
-            "Type": "AWS::IAM::Policy",
-            "Properties": {
-                "PolicyName": {
-                    "Ref": "PolicyName"
-                },
-                "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "kinesisvideo:Describestream",
-                                "kinesisvideo:PutMedia",
-                                "kinesisvideo:TagStream",
-                                "kinesisvideo:GetDataEndpoint"
-                            ],
-                            "Resource": "arn:aws:kinesisvideo:::stream/${credentials-iot:ThingName}/*"
-                        }
-                    ]
-                },
-                "Roles": [
-                    {
-                        "Ref": "MyIAMRole"
-                    }
-                ]
-            }
+            "Default": "KvsIOTPolicy"
         }
     }
+      
 }
